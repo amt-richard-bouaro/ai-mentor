@@ -1,52 +1,55 @@
 package com.rbouaro.aimentor.service;
 
-import com.rbouaro.aimentor.model.User;
+import com.rbouaro.aimentor.constants.enums.UserPermission;
+import com.rbouaro.aimentor.dto.global.AppResponse;
+import com.rbouaro.aimentor.dto.user.UserProfile;
+import com.rbouaro.aimentor.dto.user.UserRegisterRequest;
+import com.rbouaro.aimentor.entity.User;
+import com.rbouaro.aimentor.exceptions.ConflictException;
+import com.rbouaro.aimentor.mapper.UserMapper;
 import com.rbouaro.aimentor.repository.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final UserMapper userMapper;
+    private final TokenService tokenService;
 
     @Transactional
-    public User registerUser(String username, String email, String password) {
-        if (userRepository.existsByUsername(username)) {
-            throw new RuntimeException("Username already exists");
+    public AppResponse<UserProfile> registerUser(UserRegisterRequest request, HttpServletResponse response) {
+        if (userRepository.existsByUsername(request.username())) {
+            throw new ConflictException("Username already exists");
         }
-        
-        if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already exists");
+
+        if (userRepository.existsByEmail(request.email())) {
+            throw new ConflictException("Email already exists");
         }
-        
-        User user = User.builder()
-                .username(username)
-                .email(email)
-                .password(passwordEncoder.encode(password))
-                .roles(List.of("USER"))
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .enabled(true)
-                .accountNonExpired(true)
-                .accountNonLocked(true)
-                .credentialsNonExpired(true)
-                .goals(new ArrayList<>())
-                .build();
-        
-        return userRepository.save(user);
+
+        User user = userMapper.fromRegister(request);
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setPermissions(Set.of(UserPermission.USER));
+
+        userRepository.save(user);
+
+        tokenService.injectAccessToken(user, response);
+
+        return new AppResponse<>("User registered successfully", userMapper.toResponse(user));
+    }
+
+    public AppResponse<UserProfile> getUserProfile(User user) {
+        UserProfile userProfile = userMapper.toResponse(user);
+        return new AppResponse<>("User profile retrieved successfully", userProfile);
     }
 
     public Optional<User> findByUsername(String username) {

@@ -1,28 +1,27 @@
-package com.rbouaro.aimentor.model;
+package com.rbouaro.aimentor.entity;
 
+import com.rbouaro.aimentor.constants.enums.GoalStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "resources")
-@Data
+@Table(name = "user_goals")
+@Setter
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Resource {
+public class UserGoal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "milestone_id", nullable = false)
-    private Milestone milestone;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
     private String title;
@@ -30,32 +29,25 @@ public class Resource {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
-    private String url;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    private ResourceType type;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "completed_at")
-    private LocalDateTime completedAt;
+    @OneToOne(mappedBy = "userGoal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Roadmap roadmap;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private ResourceStatus status;
+    private GoalStatus status;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (status == null) {
-            status = ResourceStatus.NOT_STARTED;
+            status = GoalStatus.ACTIVE;
         }
     }
 
@@ -64,18 +56,5 @@ public class Resource {
         updatedAt = LocalDateTime.now();
     }
 
-    public enum ResourceType {
-        VIDEO,
-        ARTICLE,
-        COURSE,
-        GITHUB_PROJECT,
-        BOOK,
-        OTHER
-    }
 
-    public enum ResourceStatus {
-        NOT_STARTED,
-        IN_PROGRESS,
-        COMPLETED
-    }
 }

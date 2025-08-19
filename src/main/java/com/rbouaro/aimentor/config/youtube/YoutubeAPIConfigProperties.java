@@ -1,4 +1,4 @@
-package com.rbouaro.aimentor.config.properties;
+package com.rbouaro.aimentor.config.youtube;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

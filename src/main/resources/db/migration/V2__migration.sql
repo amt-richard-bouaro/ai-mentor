@@ -1,0 +1,9 @@
+ALTER TABLE users
+    ADD last_modified_at TIMESTAMP WITHOUT TIME ZONE;
+
+ALTER TABLE users
+DROP
+COLUMN updated_at;
+
+ALTER TABLE users
+    ALTER COLUMN created_at SET NOT NULL;

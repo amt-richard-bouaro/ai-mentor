@@ -1,4 +1,4 @@
-package com.rbouaro.aimentor.model;
+package com.rbouaro.aimentor.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,22 +7,24 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "user_goals")
+@Table(name = "milestones")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserGoal {
+public class Milestone {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "roadmap_id", nullable = false)
+    private Roadmap roadmap;
 
     @Column(nullable = false)
     private String title;
@@ -30,25 +32,31 @@ public class UserGoal {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "order_index", nullable = false)
+    private Integer orderIndex;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToOne(mappedBy = "userGoal", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Roadmap roadmap;
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
+    @OneToMany(mappedBy = "milestone", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Resource> resources = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private GoalStatus status;
+    private MilestoneStatus status;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (status == null) {
-            status = GoalStatus.ACTIVE;
+            status = MilestoneStatus.NOT_STARTED;
         }
     }
 
@@ -57,9 +65,9 @@ public class UserGoal {
         updatedAt = LocalDateTime.now();
     }
 
-    public enum GoalStatus {
-        ACTIVE,
-        COMPLETED,
-        ARCHIVED
+    public enum MilestoneStatus {
+        NOT_STARTED,
+        IN_PROGRESS,
+        COMPLETED
     }
 }

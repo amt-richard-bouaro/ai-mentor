@@ -1,5 +1,4 @@
 spring:
-
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
@@ -30,8 +29,6 @@ spring:
 
 server:
   port: ${PORT}
-  servlet:
-    context-path: /api
 
 cors:
   allowed-origins: "http://localhost:3000"
@@ -42,6 +39,8 @@ logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    com.nimbusds: DEBUG
     com.rbouaro: DEBUG
 
 extension:
@@ -50,5 +49,10 @@ extension:
     base-url: ${YOUTUBE_API_BASE_URL}
 
 jwt:
-  secret: ${JWT_SECRET:5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437}
-  expiration: 60 # 60 minutes
+  jwt-secret: ${JWT_SECRET}
+  jwt-expiration: ${JWT_EXPIRATION:60} # 60 minutes
+  rsa:
+    private-key: |
+      ${PRIVATE_KEY}
+    public-key: |
+      ${PUBLIC_KEY}

@@ -1,4 +1,4 @@
-package com.rbouaro.aimentor.config;
+package com.rbouaro.aimentor.config.app;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
