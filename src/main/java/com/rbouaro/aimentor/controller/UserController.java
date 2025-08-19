@@ -1,19 +1,26 @@
 package com.rbouaro.aimentor.controller;
 
-import com.rbouaro.aimentor.model.User;
-import com.rbouaro.aimentor.model.UserGoal;
+import com.rbouaro.aimentor.dto.global.AppResponse;
+import com.rbouaro.aimentor.dto.user.UserProfile;
+import com.rbouaro.aimentor.dto.user.UserRegisterRequest;
+import com.rbouaro.aimentor.entity.User;
+import com.rbouaro.aimentor.entity.UserGoal;
 import com.rbouaro.aimentor.service.MemoryService;
 import com.rbouaro.aimentor.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 public class UserController {
 
     private final UserService userService;
@@ -24,19 +31,25 @@ public class UserController {
         this.memoryService = memoryService;
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal User user) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", user.getId());
-        response.put("username", user.getUsername());
-        response.put("email", user.getEmail());
-        response.put("createdAt", user.getCreatedAt());
+    @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AppResponse<UserProfile> register(@Valid @RequestBody UserRegisterRequest userRegisterRequest,
+                                             HttpServletResponse response
+    ) {
+        log.info("Request received to create user with username {}", userRegisterRequest.username());
+        return userService.registerUser(userRegisterRequest, response
+        );
+    }
 
-        return ResponseEntity.ok(response);
+    @GetMapping("/me")
+    public AppResponse<UserProfile> getCurrentUser(@AuthenticationPrincipal User user) {
+        log.info("Request received to get user profile for user {}", user.getUsername());
+        return userService.getUserProfile(user);
     }
 
     @GetMapping("/me/goals")
     public ResponseEntity<List<UserGoal>> getCurrentUserGoals(@AuthenticationPrincipal User user) {
+        log.info("Request received to get user goals for user {}", user.getUsername());
         return ResponseEntity.ok(user.getGoals());
     }
 

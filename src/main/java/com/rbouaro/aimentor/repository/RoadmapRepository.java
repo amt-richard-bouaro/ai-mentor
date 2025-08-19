@@ -1,7 +1,7 @@
 package com.rbouaro.aimentor.repository;
 
-import com.rbouaro.aimentor.model.Roadmap;
-import com.rbouaro.aimentor.model.UserGoal;
+import com.rbouaro.aimentor.entity.Roadmap;
+import com.rbouaro.aimentor.entity.UserGoal;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

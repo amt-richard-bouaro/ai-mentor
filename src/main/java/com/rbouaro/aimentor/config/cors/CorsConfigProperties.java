@@ -1,4 +1,4 @@
-package com.rbouaro.aimentor.config.properties;
+package com.rbouaro.aimentor.config.cors;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

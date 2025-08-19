@@ -1,6 +1,5 @@
-package com.rbouaro.aimentor.config;
+package com.rbouaro.aimentor.config.cors;
 
-import com.rbouaro.aimentor.config.properties.CorsConfigProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -2,7 +2,7 @@ package com.rbouaro.aimentor.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rbouaro.aimentor.config.properties.YoutubeAPIConfigProperties;
+import com.rbouaro.aimentor.config.youtube.YoutubeAPIConfigProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

@@ -1,13 +1,13 @@
 package com.rbouaro.aimentor.service;
 
-import com.rbouaro.aimentor.model.*;
+import com.rbouaro.aimentor.constants.enums.GoalStatus;
+import com.rbouaro.aimentor.entity.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -30,7 +30,7 @@ public class AssistantOrchestrator {
         // Check if user has an active goal
         Optional<UserGoal> latestGoalOpt = memoryService.findLatestGoalForUser(user);
         
-        if (latestGoalOpt.isEmpty() || latestGoalOpt.get().getStatus() != UserGoal.GoalStatus.ACTIVE) {
+        if (latestGoalOpt.isEmpty() || latestGoalOpt.get().getStatus() != GoalStatus.ACTIVE) {
             // No active goal, treat input as a new goal
             return handleNewGoal(user, userInput);
         } else {

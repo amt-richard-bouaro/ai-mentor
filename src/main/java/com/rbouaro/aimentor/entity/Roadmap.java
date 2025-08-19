@@ -1,4 +1,4 @@
-package com.rbouaro.aimentor.model;
+package com.rbouaro.aimentor.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

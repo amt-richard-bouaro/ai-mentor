@@ -1,6 +1,6 @@
 package com.rbouaro.aimentor.controller;
 
-import com.rbouaro.aimentor.model.User;
+import com.rbouaro.aimentor.entity.User;
 import com.rbouaro.aimentor.service.AssistantOrchestrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/chat")
+@RequestMapping("/api/v1/chat")
 @RequiredArgsConstructor
 @Slf4j
 public class ChatController {

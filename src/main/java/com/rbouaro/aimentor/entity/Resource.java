@@ -1,4 +1,4 @@
-package com.rbouaro.aimentor.model;
+package com.rbouaro.aimentor.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,24 +7,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "milestones")
+@Table(name = "resources")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Milestone {
+public class Resource {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "roadmap_id", nullable = false)
-    private Roadmap roadmap;
+    @JoinColumn(name = "milestone_id", nullable = false)
+    private Milestone milestone;
 
     @Column(nullable = false)
     private String title;
@@ -32,8 +30,12 @@ public class Milestone {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "order_index", nullable = false)
-    private Integer orderIndex;
+    @Column(nullable = false)
+    private String url;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private ResourceType type;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -44,19 +46,16 @@ public class Milestone {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @OneToMany(mappedBy = "milestone", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Resource> resources = new ArrayList<>();
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private MilestoneStatus status;
+    private ResourceStatus status;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (status == null) {
-            status = MilestoneStatus.NOT_STARTED;
+            status = ResourceStatus.NOT_STARTED;
         }
     }
 
@@ -65,7 +64,16 @@ public class Milestone {
         updatedAt = LocalDateTime.now();
     }
 
-    public enum MilestoneStatus {
+    public enum ResourceType {
+        VIDEO,
+        ARTICLE,
+        COURSE,
+        GITHUB_PROJECT,
+        BOOK,
+        OTHER
+    }
+
+    public enum ResourceStatus {
         NOT_STARTED,
         IN_PROGRESS,
         COMPLETED

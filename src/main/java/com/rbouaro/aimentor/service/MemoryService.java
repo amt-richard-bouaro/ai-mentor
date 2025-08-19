@@ -1,6 +1,7 @@
 package com.rbouaro.aimentor.service;
 
-import com.rbouaro.aimentor.model.*;
+import com.rbouaro.aimentor.constants.enums.GoalStatus;
+import com.rbouaro.aimentor.entity.*;
 import com.rbouaro.aimentor.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,7 @@ public class MemoryService {
                 .user(user)
                 .title(title)
                 .description(description)
-                .status(UserGoal.GoalStatus.ACTIVE)
+                .status(GoalStatus.ACTIVE)
                 .build();
         return userGoalRepository.save(userGoal);
     }

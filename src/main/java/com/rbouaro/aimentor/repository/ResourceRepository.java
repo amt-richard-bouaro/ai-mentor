@@ -1,7 +1,7 @@
 package com.rbouaro.aimentor.repository;
 
-import com.rbouaro.aimentor.model.Milestone;
-import com.rbouaro.aimentor.model.Resource;
+import com.rbouaro.aimentor.entity.Milestone;
+import com.rbouaro.aimentor.entity.Resource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

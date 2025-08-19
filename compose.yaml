@@ -7,3 +7,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
     ports:
       - "${POSTGRES_PORT}:5432"
+    volumes:
+      - ai_mentor_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  ai_mentor_postgres_data:
