@@ -1,6 +1,7 @@
 package com.rbouaro.aimentor.service;
 
 import com.rbouaro.aimentor.constants.enums.GoalStatus;
+import com.rbouaro.aimentor.constants.enums.UserPermission;
 import com.rbouaro.aimentor.entity.*;
 import com.rbouaro.aimentor.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -8,8 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Permission;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +35,8 @@ public class MemoryService {
         User user = User.builder()
                 .username(username)
                 .email(email)
+                .password("password")
+                .permissions(Set.of(UserPermission.USER))
                 .build();
         return userRepository.save(user);
     }

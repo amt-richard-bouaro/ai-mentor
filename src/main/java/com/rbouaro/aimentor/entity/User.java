@@ -1,5 +1,6 @@
 package com.rbouaro.aimentor.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.rbouaro.aimentor.constants.enums.UserPermission;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,7 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -21,7 +21,10 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long pk;
+
+    @Column(nullable = false, unique = true)
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -33,8 +36,8 @@ public class User {
     private String password;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
+    @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_pk"))
+    @Column(name = "permissions")
     private Set<UserPermission> permissions = new HashSet<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -44,11 +47,13 @@ public class User {
     private LocalDateTime lastModifiedAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<UserGoal> goals = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (id == null) id = UUID.randomUUID();
     }
 
     @PreUpdate
@@ -59,7 +64,7 @@ public class User {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return permissions.stream()
                 .map(role -> new SimpleGrantedAuthority(role.name()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
 }

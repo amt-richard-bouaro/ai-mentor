@@ -1,9 +1,14 @@
-ALTER TABLE users
-    ADD last_modified_at TIMESTAMP WITHOUT TIME ZONE;
-
-ALTER TABLE users
+ALTER TABLE user_roles
 DROP
-COLUMN updated_at;
+CONSTRAINT fk_user_roles_on_user;
 
-ALTER TABLE users
-    ALTER COLUMN created_at SET NOT NULL;
+CREATE TABLE user_permissions
+(
+    user_pk     BIGINT NOT NULL,
+    permissions SMALLINT
+);
+
+ALTER TABLE user_permissions
+    ADD CONSTRAINT fk_user_permissions_on_user FOREIGN KEY (user_pk) REFERENCES users (pk);
+
+DROP TABLE user_roles CASCADE;
