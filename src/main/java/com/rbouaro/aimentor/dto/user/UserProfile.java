@@ -4,9 +4,10 @@ import com.rbouaro.aimentor.constants.enums.UserPermission;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 
 public record UserProfile(
-        Long id,
+        UUID id,
         String username,
         String email,
         Set<UserPermission> permissions,

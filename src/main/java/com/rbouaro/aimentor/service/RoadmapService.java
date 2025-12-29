@@ -25,9 +25,11 @@ public class RoadmapService {
         log.info("Generating roadmap for goal: {}", userGoal.getTitle());
         
         String roadmapJson = llmService.generateRoadmap(userGoal.getTitle(), userContext);
-        
+
+        String cleanedRoadmapJson = getCleanedRoadmapJson(roadmapJson);
+
         try {
-            JsonNode roadmapNode = objectMapper.readTree(roadmapJson);
+            JsonNode roadmapNode = objectMapper.readTree(cleanedRoadmapJson);
             
             String title = roadmapNode.path("title").asText("Learning Roadmap");
             String description = roadmapNode.path("description").asText("A personalized learning roadmap");
@@ -58,7 +60,23 @@ public class RoadmapService {
             throw new RuntimeException("Failed to parse roadmap JSON", e);
         }
     }
-    
+
+    private static String getCleanedRoadmapJson(String roadmapJson) {
+        String cleanedRoadmapJson = roadmapJson.trim();
+
+        if (cleanedRoadmapJson.startsWith("```json")) {
+            cleanedRoadmapJson = cleanedRoadmapJson.substring(7);
+        }
+        if (cleanedRoadmapJson.startsWith("```")) {
+            cleanedRoadmapJson = cleanedRoadmapJson.substring(3);
+        }
+        if (cleanedRoadmapJson.endsWith("```")) {
+            cleanedRoadmapJson = cleanedRoadmapJson.substring(0, cleanedRoadmapJson.length() - 3);
+        }
+        cleanedRoadmapJson = cleanedRoadmapJson.trim();
+        return cleanedRoadmapJson;
+    }
+
     @Transactional
     public void generateResourcesForMilestone(Milestone milestone) {
         log.info("Generating resources for milestone: {}", milestone.getTitle());
@@ -67,7 +85,7 @@ public class RoadmapService {
                 milestone.getTitle(), milestone.getDescription());
         
         try {
-            JsonNode rootNode = objectMapper.readTree(resourcesJson);
+            JsonNode rootNode = objectMapper.readTree(manuallyRepairJson(resourcesJson));
             JsonNode resourcesNode = rootNode.path("resources");
             
             if (resourcesNode.isArray()) {
@@ -94,6 +112,29 @@ public class RoadmapService {
             log.error("Error parsing resources JSON: {}", resourcesJson, e);
             throw new RuntimeException("Failed to parse resources JSON", e);
         }
+    }
+
+    private static String manuallyRepairJson(String json) {
+        // Count open and close braces to check for balance
+        long openBraces = json.chars().filter(ch -> ch == '{').count();
+        long closeBraces = json.chars().filter(ch -> ch == '}').count();
+
+        long openBrackets = json.chars().filter(ch -> ch == '[').count();
+        long closeBrackets = json.chars().filter(ch -> ch == ']').count();
+
+        StringBuilder repaired = new StringBuilder(json);
+
+        // Add missing closing braces
+        for (int i = 0; i < openBraces - closeBraces; i++) {
+            repaired.append('}');
+        }
+
+        // Add missing closing brackets
+        for (int i = 0; i < openBrackets - closeBrackets; i++) {
+            repaired.append(']');
+        }
+
+        return repaired.toString();
     }
     
     @Transactional(readOnly = true)

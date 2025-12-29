@@ -1,16 +1,16 @@
 package com.rbouaro.aimentor.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "resources")
-@Data
+@Setter
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,10 +18,14 @@ public class Resource {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long pk;
+
+    @Column(nullable = false, unique = true)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "milestone_id", nullable = false)
+    @JoinColumn(name = "milestone_pk", nullable = false)
+    @JsonBackReference
     private Milestone milestone;
 
     @Column(nullable = false)
@@ -57,6 +61,7 @@ public class Resource {
         if (status == null) {
             status = ResourceStatus.NOT_STARTED;
         }
+        if (id == null) id = UUID.randomUUID();
     }
 
     @PreUpdate

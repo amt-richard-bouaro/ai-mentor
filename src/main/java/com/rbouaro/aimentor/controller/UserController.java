@@ -48,12 +48,12 @@ public class UserController {
     }
 
     @GetMapping("/me/goals")
-    public ResponseEntity<List<UserGoal>> getCurrentUserGoals(@AuthenticationPrincipal User user) {
+    public AppResponse<List<UserGoal>> getCurrentUserGoals(@AuthenticationPrincipal User user) {
         log.info("Request received to get user goals for user {}", user.getUsername());
-        return ResponseEntity.ok(user.getGoals());
+        return userService.getUserGoals(user);
     }
 
-    @PostMapping("/goals")
+    @PostMapping("/me/goals")
     public ResponseEntity<UserGoal> createGoal(@AuthenticationPrincipal User user, @RequestBody Map<String, String> request) {
         String title = request.getOrDefault("title", "");
         String description = request.getOrDefault("description", "");
