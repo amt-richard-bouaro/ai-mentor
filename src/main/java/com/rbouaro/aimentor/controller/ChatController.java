@@ -1,5 +1,6 @@
 package com.rbouaro.aimentor.controller;
 
+import com.rbouaro.aimentor.docs.ChatApiDocs;
 import com.rbouaro.aimentor.entity.User;
 import com.rbouaro.aimentor.service.AssistantOrchestrator;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/chat")
 @RequiredArgsConstructor
 @Slf4j
-public class ChatController {
+public class ChatController implements ChatApiDocs {
 
     private final AssistantOrchestrator assistantOrchestrator;
 

@@ -17,7 +17,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
@@ -56,3 +56,10 @@ jwt:
       ${PRIVATE_KEY}
     public-key: |
       ${PUBLIC_KEY}
+
+springdoc:
+  swagger-ui:
+    enabled: true
+
+openapi:
+  url: ${OPENAPI_SERVER_URL}

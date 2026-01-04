@@ -1,5 +1,6 @@
 package com.rbouaro.aimentor.controller;
 
+import com.rbouaro.aimentor.docs.UserApiDocs;
 import com.rbouaro.aimentor.dto.global.AppResponse;
 import com.rbouaro.aimentor.dto.user.UserProfile;
 import com.rbouaro.aimentor.dto.user.UserRegisterRequest;
@@ -9,6 +10,7 @@ import com.rbouaro.aimentor.service.MemoryService;
 import com.rbouaro.aimentor.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,15 +23,11 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/users")
-public class UserController {
+@RequiredArgsConstructor
+public class UserController implements UserApiDocs {
 
     private final UserService userService;
     private final MemoryService memoryService;
-
-    public UserController(UserService userService, MemoryService memoryService) {
-        this.userService = userService;
-        this.memoryService = memoryService;
-    }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)

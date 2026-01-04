@@ -1,9 +1,10 @@
 services:
   ollama:
-    image: 'ollama/ollama:latest'
+    image: ollama/ollama:latest
     container_name: ollama
     ports:
       - "11434:11434"
+
   postgres:
     image: postgres
     container_name: ai-mentor-postgres
