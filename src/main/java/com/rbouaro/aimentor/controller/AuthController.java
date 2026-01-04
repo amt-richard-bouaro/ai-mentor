@@ -1,5 +1,6 @@
 package com.rbouaro.aimentor.controller;
 
+import com.rbouaro.aimentor.docs.AuthApiDocs;
 import com.rbouaro.aimentor.dto.global.AppResponse;
 import com.rbouaro.aimentor.dto.user.LoginRequest;
 import com.rbouaro.aimentor.dto.user.UserProfile;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthController implements AuthApiDocs {
 
 
     private final AuthService authService;
