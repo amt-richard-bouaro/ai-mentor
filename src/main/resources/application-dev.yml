@@ -63,3 +63,13 @@ springdoc:
 
 openapi:
   url: ${OPENAPI_SERVER_URL}
+
+app:
+  admin:
+    username: ${ADMIN_USERNAME}
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+  dev:
+    username: ${DEV_USERNAME}
+    email: ${DEV_EMAIL}
+    password: ${DEV_PASSWORD}
