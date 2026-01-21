@@ -8,6 +8,7 @@ import com.rbouaro.aimentor.dto.user.UserRegisterRequest;
 import com.rbouaro.aimentor.entity.User;
 import com.rbouaro.aimentor.entity.UserGoal;
 import com.rbouaro.aimentor.exceptions.ConflictException;
+import com.rbouaro.aimentor.exceptions.NotFoundException;
 import com.rbouaro.aimentor.mapper.UserMapper;
 import com.rbouaro.aimentor.repository.UserRepository;
 import com.rbouaro.aimentor.service.TokenService;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -79,6 +81,13 @@ public class UserServiceImpl implements UserService {
         );
 
         return new AppResponse<>("Users retrieved successfully", data);
+    }
+
+    public AppResponse<UserProfile> getUserById(UUID id) {
+        User user = userRepository.findUserId(id)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+
+        return new AppResponse<>("User details retrieved", userMapper.toResponse(user));
     }
 
 

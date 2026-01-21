@@ -8,12 +8,10 @@ import com.rbouaro.aimentor.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -32,5 +30,12 @@ public class AdminController implements AdminApiDocs {
     ) {
         log.info("Admin request: list users. Search: '{}', Page: {}, Size: {}", search, page, size);
         return userService.getAllUsers(search, page, size);
+    }
+
+    @GetMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public AppResponse<UserProfile> getUserById(@PathVariable UUID id) {
+        log.info("Admin request: get user by id: {}", id);
+        return userService.getUserById(id);
     }
 }

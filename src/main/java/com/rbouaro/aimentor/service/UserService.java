@@ -10,23 +10,26 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserService {
 
-    public AppResponse<UserProfile> registerUser(UserRegisterRequest request, HttpServletResponse response);
+    AppResponse<UserProfile> registerUser(UserRegisterRequest request, HttpServletResponse response);
 
-    public AppResponse<UserProfile> getUserProfile(User user);
+    AppResponse<UserProfile> getUserProfile(User user);
 
-    public AppResponse<PaginatedResponse<UserProfile>> getAllUsers(String searchTerm, int page, int size);
+    AppResponse<PaginatedResponse<UserProfile>> getAllUsers(String searchTerm, int page, int size);
 
-    public AppResponse<List<UserGoal>> getUserGoals(User user);
+    AppResponse<UserProfile> getUserById(UUID id);
 
-    public Optional<User> findByUsername(String username);
+    AppResponse<List<UserGoal>> getUserGoals(User user);
 
-    public Optional<User> findByEmail(String email);
+    Optional<User> findByUsername(String username);
 
-    public boolean existsByUsername(String username);
+    Optional<User> findByEmail(String email);
 
-    public boolean existsByEmail(String email);
+    boolean existsByUsername(String username);
+
+    boolean existsByEmail(String email);
 
 }
