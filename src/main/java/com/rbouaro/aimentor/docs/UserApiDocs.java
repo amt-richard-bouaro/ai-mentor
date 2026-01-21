@@ -49,8 +49,8 @@ public interface UserApiDocs {
                                       "message": "User registered successfully",
                                       "data": {
                                         "id": 50480cdf-69c0-416f-b0ce-d77c218a3fe5,
-                                        "username": "linus",
-                                        "email": "linus@example.com"
+                                        "username": "username",
+                                        "email": "username@example.com"
                                       }
                                     }
                                     """
@@ -85,8 +85,8 @@ public interface UserApiDocs {
                                     name = "Register Request",
                                     value = """
                                             {
-                                              "username": "linus",
-                                              "email": "linus@example.com",
+                                              "username": "username",
+                                              "email": "username@example.com",
                                               "password": "StrongPassword123"
                                             }
                                             """
@@ -116,8 +116,8 @@ public interface UserApiDocs {
                                       "message": "User profile retrieved",
                                       "data": {
                                         "id": 50480cdf-69c0-416f-b0ce-d77c218a3fe5,
-                                        "username": "linus",
-                                        "email": "linus@example.com"
+                                        "username": "username",
+                                        "email": "username@example.com"
                                       }
                                     }
                                     """

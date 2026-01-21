@@ -56,10 +56,6 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
 
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers(SwaggerConstants.SWAGGER_WHITELIST);
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
