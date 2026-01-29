@@ -145,6 +145,42 @@ public interface UserApiDocs {
             @AuthenticationPrincipal User user
     );
 
+
+    // ===================== DELETE ACCOUNT =================
+
+    @Operation(
+            summary = "Delete own account",
+            description = "Permanently deletes the authenticated user's account and all associated data."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Account deleted successfully",
+            content = @Content(
+                    examples = @ExampleObject(
+                            name = "Success",
+                            value = """
+                                    {
+                                      "success": true,
+                                      "message": "Account deleted successfully"
+                                    }
+                                    """
+            )
+            )
+    )
+    @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(implementation = AppErrorResponse.class))
+
+    )
+    @DeleteMapping("/me")
+    AppResponse<Void> deleteAccount(
+            @AuthenticationPrincipal User user,
+            HttpServletResponse response
+    );
+
+
     // ===================== USER GOALS =====================
 
     @Operation(

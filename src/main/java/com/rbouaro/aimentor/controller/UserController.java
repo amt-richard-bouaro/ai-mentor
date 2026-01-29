@@ -45,6 +45,12 @@ public class UserController implements UserApiDocs {
         return userService.getUserProfile(user);
     }
 
+    @Override
+    public AppResponse<Void> deleteAccount(User user, HttpServletResponse response) {
+        log.info("Request received to delete user account for user {}", user.getUsername());
+        return userService.deleteUser(user, response);
+    }
+
     @GetMapping("/me/goals")
     public AppResponse<List<UserGoal>> getCurrentUserGoals(@AuthenticationPrincipal User user) {
         log.info("Request received to get user goals for user {}", user.getUsername());

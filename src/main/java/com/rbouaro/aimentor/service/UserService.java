@@ -22,6 +22,8 @@ public interface UserService {
 
     AppResponse<UserProfile> getUserById(UUID id);
 
+    AppResponse<Void> deleteUser(User user, HttpServletResponse response);
+
     AppResponse<List<UserGoal>> getUserGoals(User user);
 
     Optional<User> findByUsername(String username);

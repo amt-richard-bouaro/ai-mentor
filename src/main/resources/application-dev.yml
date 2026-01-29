@@ -27,6 +27,19 @@ spring:
     serialization:
       indent_output: true
 
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+        debug: true
+
 server:
   port: ${PORT}
 
@@ -73,3 +86,8 @@ app:
     username: ${DEV_USERNAME}
     email: ${DEV_EMAIL}
     password: ${DEV_PASSWORD}
+  email:
+    from: ${MAIL_FROM:no-reply@ai-mentor.com}
+    retry:
+      initial-delay: 2000
+      max-attempts: 3
