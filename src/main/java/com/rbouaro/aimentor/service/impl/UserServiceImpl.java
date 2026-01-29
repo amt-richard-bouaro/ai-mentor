@@ -7,6 +7,7 @@ import com.rbouaro.aimentor.dto.user.UserProfile;
 import com.rbouaro.aimentor.dto.user.UserRegisterRequest;
 import com.rbouaro.aimentor.entity.User;
 import com.rbouaro.aimentor.entity.UserGoal;
+import com.rbouaro.aimentor.event.UserDeletedEvent;
 import com.rbouaro.aimentor.exceptions.ConflictException;
 import com.rbouaro.aimentor.exceptions.NotFoundException;
 import com.rbouaro.aimentor.mapper.UserMapper;
@@ -15,6 +16,7 @@ import com.rbouaro.aimentor.service.TokenService;
 import com.rbouaro.aimentor.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +38,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final TokenService tokenService;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     @Transactional
     public AppResponse<UserProfile> registerUser(UserRegisterRequest request, HttpServletResponse response) {
@@ -88,6 +92,21 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
 
         return new AppResponse<>("User details retrieved", userMapper.toResponse(user));
+    }
+
+
+    @Transactional
+    public AppResponse<Void> deleteUser(User user, HttpServletResponse response) {
+        String username = user.getUsername();
+        String email = user.getEmail();
+
+        userRepository.deleteById(user.getPk());
+
+        tokenService.removeAccessToken(response);
+
+        eventPublisher.publishEvent(new UserDeletedEvent(username, email));
+
+        return new AppResponse<>("Account deleted successfully", null);
     }
 
 
