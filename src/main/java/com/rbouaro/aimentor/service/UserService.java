@@ -1,70 +1,37 @@
 package com.rbouaro.aimentor.service;
 
-import com.rbouaro.aimentor.constants.enums.UserPermission;
 import com.rbouaro.aimentor.dto.global.AppResponse;
+import com.rbouaro.aimentor.dto.global.PaginatedResponse;
 import com.rbouaro.aimentor.dto.user.UserProfile;
 import com.rbouaro.aimentor.dto.user.UserRegisterRequest;
 import com.rbouaro.aimentor.entity.User;
-import com.rbouaro.aimentor.exceptions.ConflictException;
-import com.rbouaro.aimentor.mapper.UserMapper;
-import com.rbouaro.aimentor.repository.UserRepository;
+import com.rbouaro.aimentor.entity.UserGoal;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.UUID;
 
-@Service
-@RequiredArgsConstructor
-public class UserService {
+public interface UserService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final UserMapper userMapper;
-    private final TokenService tokenService;
+    AppResponse<UserProfile> registerUser(UserRegisterRequest request, HttpServletResponse response);
 
-    @Transactional
-    public AppResponse<UserProfile> registerUser(UserRegisterRequest request, HttpServletResponse response) {
-        if (userRepository.existsByUsername(request.username())) {
-            throw new ConflictException("Username already exists");
-        }
+    AppResponse<UserProfile> getUserProfile(User user);
 
-        if (userRepository.existsByEmail(request.email())) {
-            throw new ConflictException("Email already exists");
-        }
+    AppResponse<PaginatedResponse<UserProfile>> getAllUsers(String searchTerm, int page, int size);
 
-        User user = userMapper.fromRegister(request);
-        user.setPassword(passwordEncoder.encode(request.password()));
-        user.setPermissions(Set.of(UserPermission.USER));
+    AppResponse<UserProfile> getUserById(UUID id);
 
-        userRepository.save(user);
+    AppResponse<Void> deleteUser(User user, HttpServletResponse response);
 
-        tokenService.injectAccessToken(user, response);
+    AppResponse<List<UserGoal>> getUserGoals(User user);
 
-        return new AppResponse<>("User registered successfully", userMapper.toResponse(user));
-    }
+    Optional<User> findByUsername(String username);
 
-    public AppResponse<UserProfile> getUserProfile(User user) {
-        UserProfile userProfile = userMapper.toResponse(user);
-        return new AppResponse<>("User profile retrieved successfully", userProfile);
-    }
+    Optional<User> findByEmail(String email);
 
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
+    boolean existsByUsername(String username);
 
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
+    boolean existsByEmail(String email);
 
-    public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
-    }
-
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
-    }
 }

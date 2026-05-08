@@ -45,7 +45,7 @@ public class UserController implements UserApi {
     @Override
     public ResponseEntity<List<UserGoal>> getCurrentUserGoals(User user) {
         log.info("Request received to get user goals for user {}", user.getUsername());
-        return ResponseEntity.ok(user.getGoals());
+        return userService.getUserGoals(user);
     }
 
     @Override

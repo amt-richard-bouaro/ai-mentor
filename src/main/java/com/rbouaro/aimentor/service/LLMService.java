@@ -67,7 +67,7 @@ public class LLMService {
                 The roadmap should include:
                 1. A title for the overall learning journey
                 2. A brief description of the learning path
-                3. 5-8 sequential milestones, each with:
+                3. sequential milestones (must cover all areas of the topic), each with:
                    - A clear, specific title
                    - A description of what to learn
                    - Why this milestone is important
@@ -88,7 +88,8 @@ public class LLMService {
                   ]
                 }
 
-                Ensure the JSON is valid and properly formatted.
+                IMPORTANT: Return ONLY the raw JSON without any additional text, comments, or explanations.
+                Do not wrap the JSON in markdown code blocks or add any prefixes/suffixes.
                 """.formatted(userGoal, userContext);
 
         return generateCompletion(prompt);
@@ -122,8 +123,11 @@ public class LLMService {
                     // more resources...
                   ]
                 }
-
-                Ensure the JSON is valid and properly formatted.
+                IMPORTANT:
+                  1. Return ONLY raw valid JSON - no additional text, comments, or explanations
+                  2. Ensure all brackets and braces are properly closed
+                  3. Do not use markdown code blocks
+                  4. Make sure the JSON is complete and well-formed
                 """.formatted(milestoneTitle, milestoneDescription);
 
         return generateCompletion(prompt);

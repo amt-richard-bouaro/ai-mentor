@@ -29,7 +29,7 @@ public class JwtTokenGenerator {
         return JwtClaimsSet.builder().issuer("self")
                 .issuedAt(now)
                 .expiresAt(now.plus(expirationMinutes, ChronoUnit.DAYS))
-                .subject(user.getEmail())
+                .subject(user.getId().toString())
                 .claim("perm", permissions)
                 .build();
     }

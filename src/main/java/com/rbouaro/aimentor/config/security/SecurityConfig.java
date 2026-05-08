@@ -40,6 +40,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Configuration
@@ -52,11 +53,14 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
 
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        //TODO: create a whitelist for public endpoints
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(SwaggerConstants.SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
                         .requestMatchers("/api/v1/public/**").permitAll()
@@ -67,6 +71,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .bearerTokenResolver(new CustomTokenResolver())
                 )
                 .build();
     }
@@ -78,11 +83,12 @@ public class SecurityConfig {
             public AbstractAuthenticationToken convert(@NonNull Jwt source) {
                 log.info("JWT Subject: {}", source.getSubject());
 
-                User user = userRepository.findByUsername(source.getSubject())
+                User user = userRepository.findUserId(UUID.fromString(source.getSubject()))
+                        //TODO: use custom exception
                         .orElseThrow(() -> new IllegalArgumentException("User not found"));
                 log.info("User found: {}", user.getEmail());
 
-                String permissions = source.getClaim("perm");
+                List<String> permissions = source.getClaim("perm");
 
                 Collection<? extends GrantedAuthority> authorities = getAuthorities(permissions);
 
@@ -91,8 +97,8 @@ public class SecurityConfig {
                 return new UserAuthentication(source, user, authorities);
             }
 
-            private Collection<? extends GrantedAuthority> getAuthorities(String perm) {
-                return List.of(new SimpleGrantedAuthority(perm));
+            private Collection<? extends GrantedAuthority> getAuthorities(List<String> perm) {
+                return perm.stream().map(SimpleGrantedAuthority::new).toList();
             }
         };
     }

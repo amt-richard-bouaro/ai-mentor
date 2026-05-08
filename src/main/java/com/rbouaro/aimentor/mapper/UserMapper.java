@@ -9,6 +9,7 @@ import org.mapstruct.Named;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,7 +57,7 @@ public interface UserMapper {
                         return null;
                     }
                 })
-                .filter(e -> e != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 }

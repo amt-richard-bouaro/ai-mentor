@@ -1,10 +1,13 @@
 package com.rbouaro.aimentor.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.rbouaro.aimentor.constants.enums.GoalStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "user_goals")
@@ -17,10 +20,14 @@ public class UserGoal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long pk;
+
+    @Column(nullable = false, unique = true)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_pk", nullable = false)
+    @JsonBackReference
     private User user;
 
     @Column(nullable = false)
@@ -36,6 +43,7 @@ public class UserGoal {
     private LocalDateTime updatedAt;
 
     @OneToOne(mappedBy = "userGoal", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private Roadmap roadmap;
 
     @Enumerated(EnumType.STRING)
@@ -49,6 +57,7 @@ public class UserGoal {
         if (status == null) {
             status = GoalStatus.ACTIVE;
         }
+        if (id == null) id = UUID.randomUUID();
     }
 
     @PreUpdate
