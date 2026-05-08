@@ -6,8 +6,6 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import com.rbouaro.aimentor.config.docs.SwaggerConstants;
-import com.rbouaro.aimentor.config.jwt.JwtConfigProperties;
 import com.rbouaro.aimentor.config.jwt.RSAConfigProperties;
 import com.rbouaro.aimentor.entity.User;
 import com.rbouaro.aimentor.repository.UserRepository;
@@ -30,8 +28,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.*;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.security.GeneralSecurityException;
@@ -47,10 +48,6 @@ import java.util.UUID;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final AuthUserDetailsService userDetailsService;
-
-    private final JwtConfigProperties jwtConfigProperties;
 
     private final RSAConfigProperties rsaConfigProperties;
 
@@ -68,6 +65,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
                         .requestMatchers("/api/v1/public/**").permitAll()
                         .requestMatchers("/api/chat/health").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -117,7 +115,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtEncoder jwtEncoder() throws GeneralSecurityException {
-       RSAPublicKey rsaPublicKey = PemUtils.parsePublicKey(rsaConfigProperties.publicKey());
+        RSAPublicKey rsaPublicKey = PemUtils.parsePublicKey(rsaConfigProperties.publicKey());
         RSAPrivateKey rsaPrivateKey = PemUtils.parsePrivateKey(rsaConfigProperties.privateKey());
 
         JWK jwk = new RSAKey.Builder(rsaPublicKey)
