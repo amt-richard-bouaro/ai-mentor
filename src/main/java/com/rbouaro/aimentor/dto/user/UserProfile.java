@@ -9,8 +9,8 @@ import java.util.UUID;
 
 @Schema(description = "User profile information")
 public record UserProfile(
-        @Schema(description = "Internal user ID", example = "1")
-        Long id,
+        @Schema(description = "User ID", example = "550e8400-e29b-41d4-a716-446655440000")
+        UUID id,
 
         @Schema(description = "Unique username", example = "johndoe")
         String username,

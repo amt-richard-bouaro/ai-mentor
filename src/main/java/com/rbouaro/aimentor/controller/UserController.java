@@ -6,11 +6,11 @@ import com.rbouaro.aimentor.dto.user.UserProfile;
 import com.rbouaro.aimentor.dto.user.UserRegisterRequest;
 import com.rbouaro.aimentor.entity.User;
 import com.rbouaro.aimentor.entity.UserGoal;
+import com.rbouaro.aimentor.exceptions.BadRequestException;
 import com.rbouaro.aimentor.service.MemoryService;
 import com.rbouaro.aimentor.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,21 +43,21 @@ public class UserController implements UserApi {
     }
 
     @Override
-    public ResponseEntity<List<UserGoal>> getCurrentUserGoals(User user) {
+    public AppResponse<List<UserGoal>> getCurrentUserGoals(User user) {
         log.info("Request received to get user goals for user {}", user.getUsername());
         return userService.getUserGoals(user);
     }
 
     @Override
-    public ResponseEntity<UserGoal> createGoal(User user, Map<String, String> request) {
+    public AppResponse<UserGoal> createGoal(User user, Map<String, String> request) {
         String title = request.getOrDefault("title", "");
         String description = request.getOrDefault("description", "");
 
         if (title.isBlank()) {
-            return ResponseEntity.badRequest().build();
+            throw new BadRequestException("Title is required");
         }
 
         UserGoal goal = memoryService.createGoal(user, title, description);
-        return ResponseEntity.ok(goal);
+        return new AppResponse<>("Goal created", goal);
     }
 }
