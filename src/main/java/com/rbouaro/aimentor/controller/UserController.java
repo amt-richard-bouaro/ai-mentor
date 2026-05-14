@@ -2,11 +2,11 @@ package com.rbouaro.aimentor.controller;
 
 import com.rbouaro.aimentor.documentation.UserApi;
 import com.rbouaro.aimentor.dto.global.AppResponse;
+import com.rbouaro.aimentor.dto.goal.CreateGoalRequest;
 import com.rbouaro.aimentor.dto.user.UserProfile;
 import com.rbouaro.aimentor.dto.user.UserRegisterRequest;
 import com.rbouaro.aimentor.entity.User;
 import com.rbouaro.aimentor.entity.UserGoal;
-import com.rbouaro.aimentor.exceptions.BadRequestException;
 import com.rbouaro.aimentor.service.MemoryService;
 import com.rbouaro.aimentor.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -49,15 +48,8 @@ public class UserController implements UserApi {
     }
 
     @Override
-    public AppResponse<UserGoal> createGoal(User user, Map<String, String> request) {
-        String title = request.getOrDefault("title", "");
-        String description = request.getOrDefault("description", "");
-
-        if (title.isBlank()) {
-            throw new BadRequestException("Title is required");
-        }
-
-        UserGoal goal = memoryService.createGoal(user, title, description);
+    public AppResponse<UserGoal> createGoal(User user, CreateGoalRequest request) {
+        UserGoal goal = memoryService.createGoal(user, request.title(), request.description());
         return new AppResponse<>("Goal created", goal);
     }
 }

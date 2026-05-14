@@ -1,5 +1,6 @@
 package com.rbouaro.aimentor.documentation;
 
+import com.rbouaro.aimentor.dto.chat.ChatMessageRequest;
 import com.rbouaro.aimentor.dto.global.AppErrorResponse;
 import com.rbouaro.aimentor.dto.global.AppResponse;
 import com.rbouaro.aimentor.entity.User;
@@ -11,10 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @Tag(name = "Chat", description = "AI mentor chat and health check")
 public interface ChatApi {
@@ -31,7 +31,7 @@ public interface ChatApi {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    AppResponse<String> processMessage(@AuthenticationPrincipal User user, @RequestBody Map<String, String> request);
+    AppResponse<String> processMessage(@AuthenticationPrincipal User user, @Valid @RequestBody ChatMessageRequest request);
 
     @Operation(summary = "Health check", description = "Check if the AI mentor service is up and ready.")
     @ApiResponse(responseCode = "200", description = "Service is healthy",

@@ -3,6 +3,7 @@ package com.rbouaro.aimentor.documentation;
 import com.rbouaro.aimentor.dto.global.AppErrorResponse;
 import com.rbouaro.aimentor.dto.global.AppResponse;
 import com.rbouaro.aimentor.dto.user.UserProfile;
+import com.rbouaro.aimentor.dto.goal.CreateGoalRequest;
 import com.rbouaro.aimentor.dto.user.UserRegisterRequest;
 import com.rbouaro.aimentor.entity.User;
 import com.rbouaro.aimentor.entity.UserGoal;
@@ -21,7 +22,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @Tag(name = "Users", description = "User registration and profile management")
 public interface UserApi {
@@ -70,5 +70,5 @@ public interface UserApi {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = AppErrorResponse.class)))
     })
     @PostMapping(value = "/goals", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    AppResponse<UserGoal> createGoal(@AuthenticationPrincipal User user, @RequestBody Map<String, String> request);
+    AppResponse<UserGoal> createGoal(@AuthenticationPrincipal User user, @Valid @RequestBody CreateGoalRequest request);
 }
