@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,17 +58,17 @@ public interface UserApi {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = AppErrorResponse.class)))
     })
     @GetMapping(value = "/me/goals", produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<List<UserGoal>> getCurrentUserGoals(@AuthenticationPrincipal User user);
+    AppResponse<List<UserGoal>> getCurrentUserGoals(@AuthenticationPrincipal User user);
 
     @Operation(summary = "Create goal", description = "Creates a new learning goal for the authenticated user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Goal created",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = AppResponse.class))),
             @ApiResponse(responseCode = "400", description = "Title is required",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = AppErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "Not authenticated",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = AppErrorResponse.class)))
     })
     @PostMapping(value = "/goals", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<UserGoal> createGoal(@AuthenticationPrincipal User user, @RequestBody Map<String, String> request);
+    AppResponse<UserGoal> createGoal(@AuthenticationPrincipal User user, @RequestBody Map<String, String> request);
 }

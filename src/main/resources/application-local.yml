@@ -1,8 +1,8 @@
 spring:
   autoconfigure:
     exclude:
-      - org.springframework.ai.model.ollama.autoconfigure.OllamaChatAutoConfiguration
-      - com.embabel.agent.autoconfigure.models.ollama.AgentOllamaAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration
+      - com.embabel.agent.autoconfigure.models.openai.custom.AgentOpenAiCustomAutoConfiguration
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
@@ -21,35 +21,33 @@ spring:
       indent_output: true
   mail:
     host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    port: ${MAIL_PORT:}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+        debug: true
 
 embabel:
   models:
-    default-llm: ${GROQ_MODEL:llama-3.3-70b-versatile}
+    default-llm: llama3.2
   agent:
     platform:
       models:
-        openai:
-          custom:
-            base-url: ${OPENAPI_SERVER_URL}
-            api-key: ${GROQ_API_KEY}
-            models: ${GROQ_MODEL}
+        ollama:
+          base-url: ${OLLAMA_BASE_URL}
       http-client:
         connect-timeout: 10m
 
 server:
-  port: ${PORT}
+  port: ${PORT:8080}
 
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  allowed-origins: "http://localhost:3000"
   allowed-methods: "GET,POST,PUT,DELETE"
   allowed-headers: "*"
 

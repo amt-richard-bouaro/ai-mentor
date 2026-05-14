@@ -1,6 +1,7 @@
 package com.rbouaro.aimentor.documentation;
 
 import com.rbouaro.aimentor.dto.global.AppErrorResponse;
+import com.rbouaro.aimentor.dto.global.AppResponse;
 import com.rbouaro.aimentor.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,12 +31,12 @@ public interface ChatApi {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Map<String, String>> processMessage(@AuthenticationPrincipal User user, @RequestBody Map<String, String> request);
+    AppResponse<String> processMessage(@AuthenticationPrincipal User user, @RequestBody Map<String, String> request);
 
     @Operation(summary = "Health check", description = "Check if the AI mentor service is up and ready.")
     @ApiResponse(responseCode = "200", description = "Service is healthy",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = AppResponse.class)))
     @SecurityRequirements
     @GetMapping(value = "/health", produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Map<String, String>> healthCheck();
+    AppResponse<String> healthCheck();
 }
