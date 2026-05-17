@@ -9,7 +9,8 @@ import java.util.List;
 @Mapper(
         componentModel = "spring",
         injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        uses = {ResourceMapper.class}
 )
 public interface MilestoneMapper {
 
