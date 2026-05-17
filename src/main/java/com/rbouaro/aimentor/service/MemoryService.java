@@ -2,17 +2,27 @@ package com.rbouaro.aimentor.service;
 
 import com.rbouaro.aimentor.constants.enums.GoalStatus;
 import com.rbouaro.aimentor.constants.enums.UserPermission;
-import com.rbouaro.aimentor.entity.*;
-import com.rbouaro.aimentor.repository.*;
+import com.rbouaro.aimentor.entity.Milestone;
+import com.rbouaro.aimentor.entity.Resource;
+import com.rbouaro.aimentor.entity.Roadmap;
+import com.rbouaro.aimentor.entity.User;
+import com.rbouaro.aimentor.entity.UserGoal;
+import com.rbouaro.aimentor.event.GoalCreatedEvent;
+import com.rbouaro.aimentor.repository.MilestoneRepository;
+import com.rbouaro.aimentor.repository.ResourceRepository;
+import com.rbouaro.aimentor.repository.RoadmapRepository;
+import com.rbouaro.aimentor.repository.UserGoalRepository;
+import com.rbouaro.aimentor.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Permission;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +34,27 @@ public class MemoryService {
     private final RoadmapRepository roadmapRepository;
     private final MilestoneRepository milestoneRepository;
     private final ResourceRepository resourceRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Transactional(readOnly = true)
+    public List<Roadmap> findAllRoadmapsForUser(User user) {
+        return roadmapRepository.findByUserGoal_User(user);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Roadmap> findRoadmapByIdForUser(UUID id, User user) {
+        return roadmapRepository.findByIdIsAndUserGoal_User(id, user);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Milestone> findMilestoneByIdForUser(UUID id, User user) {
+        return milestoneRepository.findByIdIsAndRoadmap_UserGoal_User(id, user);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Resource> findResourceByIdForUser(UUID id, User user) {
+        return resourceRepository.findByIdIsAndMilestone_Roadmap_UserGoal_User(id, user);
+    }
 
     @Transactional(readOnly = true)
     public Optional<User> findUserByUsername(String username) {
@@ -54,7 +85,9 @@ public class MemoryService {
                 .description(description)
                 .status(GoalStatus.ACTIVE)
                 .build();
-        return userGoalRepository.save(userGoal);
+        UserGoal saved = userGoalRepository.save(userGoal);
+        eventPublisher.publishEvent(new GoalCreatedEvent(saved));
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -95,8 +128,8 @@ public class MemoryService {
     }
 
     @Transactional
-    public Resource createResource(Milestone milestone, String title, String description, 
-                                  String url, Resource.ResourceType type) {
+    public Resource createResource(Milestone milestone, String title, String description,
+                                   String url, Resource.ResourceType type) {
         Resource resource = Resource.builder()
                 .milestone(milestone)
                 .title(title)
@@ -126,7 +159,7 @@ public class MemoryService {
         if (totalMilestones == 0) {
             return 0.0;
         }
-        
+
         int completedMilestones = milestoneRepository.countByRoadmapAndStatus(roadmap, Milestone.MilestoneStatus.COMPLETED);
         return (double) completedMilestones / totalMilestones * 100.0;
     }

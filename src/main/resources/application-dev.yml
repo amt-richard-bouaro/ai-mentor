@@ -3,6 +3,23 @@ spring:
     exclude:
       - org.springframework.ai.model.ollama.autoconfigure.OllamaChatAutoConfiguration
       - com.embabel.agent.autoconfigure.models.ollama.AgentOllamaAutoConfiguration
+  ai:
+    mcp:
+      client:
+        enabled: true
+        name: ai-mentor
+        version: 1.0.0
+        request-timeout: 30s
+        type: SYNC
+        stdio:
+          connections:
+            duckduckgo-mcp:
+              command: docker
+              args:
+                - run
+                - -i
+                - --rm
+                - mcp/duckduckgo
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
@@ -44,6 +61,13 @@ embabel:
             models: ${GROQ_MODEL}
       http-client:
         connect-timeout: 10m
+      tools:
+        includes:
+          web:
+            description: "Web search tools powered by DuckDuckGo"
+            tools:
+              - search
+              - duckduckgo_web_search
 
 server:
   port: ${PORT}

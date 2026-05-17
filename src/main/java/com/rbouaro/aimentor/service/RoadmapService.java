@@ -27,13 +27,15 @@ public class RoadmapService {
 
     @Transactional
     public Roadmap generateRoadmap(UserGoal userGoal, String userContext) {
-        log.info("Generating roadmap for goal: {}", userGoal.getTitle());
+        log.info("[ROADMAP] generateRoadmap goalId={} title='{}'", userGoal.getId(), userGoal.getTitle());
 
         String input = "Goal: " + userGoal.getTitle() + "\n\nAdditional context from the user:\n" + userContext;
+        log.info("[ROADMAP] Invoking RoadmapGenerationAgent goalId={}", userGoal.getId());
         String roadmapJson = AgentInvocation
                 .create(agentPlatform, RoadmapGenerationAgent.RoadmapJson.class)
                 .invoke(new UserInput(input))
                 .content();
+        log.info("[ROADMAP] RoadmapGenerationAgent completed goalId={} responseLength={}", userGoal.getId(), roadmapJson.length());
 
         String cleanedJson = cleanJson(roadmapJson);
 
@@ -44,6 +46,7 @@ public class RoadmapService {
             String description = roadmapNode.path("description").asText("A personalized learning roadmap");
 
             Roadmap roadmap = memoryService.createRoadmap(userGoal, title, description);
+            log.debug("[ROADMAP] Created roadmap id={} title='{}'", roadmap.getId(), roadmap.getTitle());
 
             JsonNode milestonesNode = roadmapNode.path("milestones");
             if (milestonesNode.isArray()) {
@@ -51,34 +54,38 @@ public class RoadmapService {
                 for (JsonNode milestoneNode : milestonesNode) {
                     String milestoneTitle = milestoneNode.path("title").asText("Milestone " + (orderIndex + 1));
                     String milestoneDescription = milestoneNode.path("description").asText("");
-                    Milestone milestone = memoryService.createMilestone(roadmap, milestoneTitle, milestoneDescription, orderIndex);
-                    generateResourcesForMilestone(milestone);
+                    memoryService.createMilestone(roadmap, milestoneTitle, milestoneDescription, orderIndex);
+                    log.debug("[ROADMAP] Created milestone index={} title='{}'", orderIndex, milestoneTitle);
                     orderIndex++;
                 }
+                log.info("[ROADMAP] Saved {} milestones for roadmapId={}", orderIndex, roadmap.getId());
             }
 
             return roadmap;
         } catch (JsonProcessingException e) {
-            log.error("Error parsing roadmap JSON: {}", roadmapJson, e);
+            log.error("[ROADMAP] Failed to parse roadmap JSON goalId={} raw='{}'", userGoal.getId(), roadmapJson, e);
             throw new RuntimeException("Failed to parse roadmap JSON", e);
         }
     }
 
     @Transactional
     public void generateResourcesForMilestone(Milestone milestone) {
-        log.info("Generating resources for milestone: {}", milestone.getTitle());
+        log.info("[ROADMAP] generateResourcesForMilestone milestoneId={} title='{}'", milestone.getId(), milestone.getTitle());
 
         String input = "Milestone: " + milestone.getTitle() + "\n\nDescription: " + milestone.getDescription();
+        log.info("[ROADMAP] Invoking ResourceRecommendationAgent milestoneId={}", milestone.getId());
         String resourcesJson = AgentInvocation
                 .create(agentPlatform, ResourceRecommendationAgent.ResourceRecommendations.class)
                 .invoke(new UserInput(input))
                 .content();
+        log.info("[ROADMAP] ResourceRecommendationAgent completed milestoneId={} responseLength={}", milestone.getId(), resourcesJson.length());
 
         try {
             JsonNode rootNode = objectMapper.readTree(repairJson(resourcesJson));
             JsonNode resourcesNode = rootNode.path("resources");
 
             if (resourcesNode.isArray()) {
+                int count = 0;
                 for (JsonNode resourceNode : resourcesNode) {
                     String title = resourceNode.path("title").asText("Resource");
                     String description = resourceNode.path("description").asText("");
@@ -88,15 +95,19 @@ public class RoadmapService {
                     try {
                         type = Resource.ResourceType.valueOf(typeStr);
                     } catch (IllegalArgumentException e) {
+                        log.warn("[ROADMAP] Unknown resource type='{}' — defaulting to OTHER", typeStr);
                         type = Resource.ResourceType.OTHER;
                     }
 
-                    String url = "#" + title.toLowerCase().replace(' ', '-');
+                    String url = resourceNode.path("url").asText("");
                     memoryService.createResource(milestone, title, description, url, type);
+                    log.debug("[ROADMAP] Saved resource title='{}' type={} milestoneId={}", title, type, milestone.getId());
+                    count++;
                 }
+                log.info("[ROADMAP] Saved {} resources for milestoneId={}", count, milestone.getId());
             }
         } catch (JsonProcessingException e) {
-            log.error("Error parsing resources JSON: {}", resourcesJson, e);
+            log.error("[ROADMAP] Failed to parse resources JSON milestoneId={} raw='{}'", milestone.getId(), resourcesJson, e);
             throw new RuntimeException("Failed to parse resources JSON", e);
         }
     }

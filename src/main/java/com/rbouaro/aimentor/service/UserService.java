@@ -2,10 +2,10 @@ package com.rbouaro.aimentor.service;
 
 import com.rbouaro.aimentor.dto.global.AppResponse;
 import com.rbouaro.aimentor.dto.global.PaginatedResponse;
+import com.rbouaro.aimentor.dto.goal.UserGoalResponse;
 import com.rbouaro.aimentor.dto.user.UserProfile;
 import com.rbouaro.aimentor.dto.user.UserRegisterRequest;
 import com.rbouaro.aimentor.entity.User;
-import com.rbouaro.aimentor.entity.UserGoal;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public interface UserService {
 
     AppResponse<Void> deleteUser(User user, HttpServletResponse response);
 
-    AppResponse<List<UserGoal>> getUserGoals(User user);
+    AppResponse<List<UserGoalResponse>> getUserGoals(User user);
 
     Optional<User> findByUsername(String username);
 
