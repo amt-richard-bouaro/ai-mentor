@@ -26,21 +26,29 @@ public class AssistantOrchestrator {
 
     @Transactional
     public String processUserInput(String username, String userInput) {
-        log.info("Processing user input from {}: {}", username, userInput);
+        log.info("[ORCHESTRATOR] Processing input from username={}", username);
 
         User user = getOrCreateUser(username);
+        log.debug("[ORCHESTRATOR] Resolved user id={} username={}", user.getId(), user.getUsername());
 
         Optional<UserGoal> latestGoalOpt = memoryService.findLatestGoalForUser(user);
+        log.debug("[ORCHESTRATOR] Latest goal present={} status={}",
+                latestGoalOpt.isPresent(),
+                latestGoalOpt.map(g -> g.getStatus().toString()).orElse("none"));
 
         if (latestGoalOpt.isEmpty() || latestGoalOpt.get().getStatus() != GoalStatus.ACTIVE) {
+            log.info("[ORCHESTRATOR] No active goal — routing to handleNewGoal");
             return handleNewGoal(user, userInput);
         } else {
             UserGoal activeGoal = latestGoalOpt.get();
             Optional<Roadmap> roadmapOpt = memoryService.findRoadmapForGoal(activeGoal);
+            log.debug("[ORCHESTRATOR] Roadmap present={} for goalId={}", roadmapOpt.isPresent(), activeGoal.getId());
 
             if (roadmapOpt.isEmpty()) {
+                log.info("[ORCHESTRATOR] Active goal has no roadmap — routing to handleRoadmapGeneration goalId={}", activeGoal.getId());
                 return handleRoadmapGeneration(activeGoal, userInput);
             } else {
+                log.info("[ORCHESTRATOR] Active roadmap found — routing to handleExistingRoadmap roadmapId={}", roadmapOpt.get().getId());
                 return handleExistingRoadmap(roadmapOpt.get(), userInput);
             }
         }
@@ -52,14 +60,17 @@ public class AssistantOrchestrator {
     }
 
     private String handleNewGoal(User user, String goalDescription) {
-        log.info("Handling new goal for user {}: {}", user.getUsername(), goalDescription);
+        log.info("[ORCHESTRATOR] handleNewGoal userId={}", user.getId());
 
         UserGoal goal = memoryService.createGoal(user, extractGoalTitle(goalDescription), goalDescription);
+        log.debug("[ORCHESTRATOR] Created goal id={} title='{}'", goal.getId(), goal.getTitle());
 
+        log.info("[ORCHESTRATOR] Invoking ClarifyingQuestionsAgent goalId={}", goal.getId());
         String questions = AgentInvocation
                 .create(agentPlatform, ClarifyingQuestionsAgent.ClarifyingQuestions.class)
                 .invoke(new UserInput(goalDescription))
                 .content();
+        log.info("[ORCHESTRATOR] ClarifyingQuestionsAgent completed goalId={}", goal.getId());
 
         return "I understand you want to " + goal.getTitle() + ". To create a personalized roadmap, I need some more information:\n\n" + questions;
     }
@@ -71,10 +82,13 @@ public class AssistantOrchestrator {
     }
 
     private String handleRoadmapGeneration(UserGoal goal, String userContext) {
-        log.info("Generating roadmap for goal: {} with context: {}", goal.getTitle(), userContext);
+        log.info("[ORCHESTRATOR] handleRoadmapGeneration goalId={} title='{}'", goal.getId(), goal.getTitle());
 
         Roadmap roadmap = roadmapService.generateRoadmap(goal, userContext);
+        log.info("[ORCHESTRATOR] Roadmap generated id={} title='{}'", roadmap.getId(), roadmap.getTitle());
+
         List<Milestone> milestones = roadmapService.getMilestonesForRoadmap(roadmap);
+        log.debug("[ORCHESTRATOR] Fetched {} milestones for roadmapId={}", milestones.size(), roadmap.getId());
 
         StringBuilder response = new StringBuilder();
         response.append("Great! I've created a learning roadmap for you: **").append(roadmap.getTitle()).append("**\n\n");
@@ -140,14 +154,18 @@ public class AssistantOrchestrator {
     }
 
     private String showMilestoneResources(Milestone milestone) {
+        log.info("[ORCHESTRATOR] showMilestoneResources milestoneId={} title='{}'", milestone.getId(), milestone.getTitle());
         List<Resource> resources = roadmapService.getResourcesForMilestone(milestone);
+        log.debug("[ORCHESTRATOR] Found {} existing resources for milestoneId={}", resources.size(), milestone.getId());
 
         StringBuilder response = new StringBuilder();
         response.append("**Resources for ").append(milestone.getTitle()).append(":**\n\n");
 
         if (resources.isEmpty()) {
+            log.info("[ORCHESTRATOR] No resources found — triggering on-demand generation for milestoneId={}", milestone.getId());
             response.append("No resources found for this milestone. Let me find some for you...\n\n");
             roadmapService.generateResourcesForMilestone(milestone);
+            log.info("[ORCHESTRATOR] On-demand resource generation complete for milestoneId={}", milestone.getId());
             resources = roadmapService.getResourcesForMilestone(milestone);
 
             if (resources.isEmpty()) {

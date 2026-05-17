@@ -3,6 +3,23 @@ spring:
     exclude:
       - org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration
       - com.embabel.agent.autoconfigure.models.openai.custom.AgentOpenAiCustomAutoConfiguration
+  ai:
+    mcp:
+      client:
+        enabled: true
+        name: ai-mentor
+        version: 1.0.0
+        request-timeout: 30s
+        type: SYNC
+        stdio:
+          connections:
+            duckduckgo-mcp:
+              command: docker
+              args:
+                - run
+                - -i
+                - --rm
+                - mcp/duckduckgo
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
@@ -34,7 +51,7 @@ spring:
 
 embabel:
   models:
-    default-llm: llama3.2
+    default-llm: llama3.2:latest
   agent:
     platform:
       models:
@@ -42,6 +59,13 @@ embabel:
           base-url: ${OLLAMA_BASE_URL}
       http-client:
         connect-timeout: 10m
+      tools:
+        includes:
+          web:
+            description: "Web search tools powered by DuckDuckGo"
+            tools:
+              - search
+              - duckduckgo_web_search
 
 server:
   port: ${PORT:8080}

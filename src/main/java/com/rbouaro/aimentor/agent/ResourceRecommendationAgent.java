@@ -24,12 +24,12 @@ public class ResourceRecommendationAgent {
         String prompt = """
                 %s
 
-                Recommend 3-5 specific learning resources that would help the user complete this milestone.
+                Recommend 3-5 specific, real learning resources that would help the user complete this milestone.
                 For each resource, provide:
-                1. A descriptive title
+                1. A descriptive title (use the actual name of the resource)
                 2. A brief explanation of why it's valuable
-                3. What type of resource it is (video, article, course, project, book, etc.)
-                4. Keywords that could be used to search for this resource online
+                3. What type of resource it is (VIDEO, ARTICLE, COURSE, GITHUB_PROJECT, BOOK, or OTHER)
+                4. The actual URL to the resource (e.g. https://github.com/org/repo, https://docs.spring.io/..., https://www.youtube.com/watch?v=...). Use real, known URLs only.
 
                 Format your response in JSON with the following structure:
                 {
@@ -38,7 +38,7 @@ public class ResourceRecommendationAgent {
                       "title": "Resource title",
                       "description": "Why this resource is valuable",
                       "type": "VIDEO|ARTICLE|COURSE|GITHUB_PROJECT|BOOK|OTHER",
-                      "searchKeywords": ["keyword1", "keyword2", "keyword3"]
+                      "url": "https://actual-url-to-resource.com"
                     }
                   ]
                 }
@@ -47,6 +47,7 @@ public class ResourceRecommendationAgent {
                   2. Ensure all brackets and braces are properly closed
                   3. Do not use markdown code blocks
                   4. Make sure the JSON is complete and well-formed
+                  5. Every resource must have a real, full URL starting with https://
                 """.formatted(userInput.getContent());
 
         return new ResourceRecommendations(

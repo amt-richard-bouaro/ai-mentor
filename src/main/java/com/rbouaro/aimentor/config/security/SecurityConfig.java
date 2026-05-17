@@ -65,7 +65,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
                         .requestMatchers("/api/v1/public/**").permitAll()
-                        .requestMatchers("/api/chat/health").permitAll()
+                        .requestMatchers("/api/v1/users/chat/health").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
