@@ -37,6 +37,9 @@ public class Resource {
     @Column(nullable = false)
     private String url;
 
+    @Column
+    private String thumbnail;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private ResourceType type;

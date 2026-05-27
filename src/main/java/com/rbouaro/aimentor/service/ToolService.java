@@ -2,13 +2,11 @@ package com.rbouaro.aimentor.service;
 
 import com.embabel.agent.api.annotation.LlmTool;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbouaro.aimentor.config.youtube.YoutubeAPIConfigProperties;
+import com.rbouaro.aimentor.util.HttpClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
@@ -21,8 +19,7 @@ import java.util.Map;
 @Slf4j
 public class ToolService {
 
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    private final HttpClientService httpClientService;
     private final YoutubeAPIConfigProperties youtubeProperties;
 
     @LlmTool(description = "Search YouTube for video tutorials on a given learning topic. Returns real videos with titles, descriptions, and watch URLs.")
@@ -42,8 +39,7 @@ public class ToolService {
                 .toUriString();
 
         try {
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode root = httpClientService.getJson(url);
             JsonNode items = root.path("items");
 
             List<Map<String, String>> results = new ArrayList<>();
@@ -54,12 +50,14 @@ public class ToolService {
                     String title = item.path("snippet").path("title").asText();
                     String description = item.path("snippet").path("description").asText();
                     String channelTitle = item.path("snippet").path("channelTitle").asText();
+                    String thumbnail = item.path("snippet").path("thumbnails").path("high").path("url").asText("");
 
                     Map<String, String> video = new HashMap<>();
                     video.put("title", title);
                     video.put("description", description);
                     video.put("channelTitle", channelTitle);
                     video.put("url", "https://www.youtube.com/watch?v=" + videoId);
+                    video.put("thumbnail", thumbnail);
                     results.add(video);
                 }
             }

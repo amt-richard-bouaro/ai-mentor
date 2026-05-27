@@ -14,6 +14,7 @@ public record ResourceResponse(
         @Schema(description = "Resource title") String title,
         @Schema(description = "Why this resource is valuable") String description,
         @Schema(description = "URL to the resource") String url,
+        @Schema(description = "Thumbnail image URL, available for VIDEO resources") String thumbnail,
         @Schema(description = "Resource type") Resource.ResourceType type,
         @Schema(description = "Current status") Resource.ResourceStatus status,
         @Schema(description = "Creation timestamp") LocalDateTime createdAt,

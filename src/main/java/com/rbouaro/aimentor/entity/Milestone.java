@@ -37,6 +37,9 @@ public class Milestone {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
+    private String content;
+
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex;
 

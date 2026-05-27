@@ -6,9 +6,16 @@ import com.embabel.agent.domain.io.UserInput;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rbouaro.aimentor.agent.ContentGenerationAgent;
+import com.rbouaro.aimentor.agent.QuizGenerationAgent;
 import com.rbouaro.aimentor.agent.ResourceRecommendationAgent;
 import com.rbouaro.aimentor.agent.RoadmapGenerationAgent;
+import com.rbouaro.aimentor.dto.quiz.QuizQuestionDto;
+import com.rbouaro.aimentor.dto.quiz.QuizResponse;
+import com.rbouaro.aimentor.dto.quiz.QuizResultQuestionDto;
+import com.rbouaro.aimentor.dto.quiz.QuizResultResponse;
 import com.rbouaro.aimentor.entity.*;
+import com.rbouaro.aimentor.exceptions.ConflictException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -54,7 +61,7 @@ public class RoadmapService {
                 for (JsonNode milestoneNode : milestonesNode) {
                     String milestoneTitle = milestoneNode.path("title").asText("Milestone " + (orderIndex + 1));
                     String milestoneDescription = milestoneNode.path("description").asText("");
-                    memoryService.createMilestone(roadmap, milestoneTitle, milestoneDescription, orderIndex);
+                    memoryService.createMilestone(roadmap, milestoneTitle, milestoneDescription, null, orderIndex);
                     log.debug("[ROADMAP] Created milestone index={} title='{}'", orderIndex, milestoneTitle);
                     orderIndex++;
                 }
@@ -100,7 +107,8 @@ public class RoadmapService {
                     }
 
                     String url = resourceNode.path("url").asText("");
-                    memoryService.createResource(milestone, title, description, url, type);
+                    String thumbnail = resourceNode.path("thumbnail").asText(null);
+                    memoryService.createResource(milestone, title, description, url, type, thumbnail);
                     log.debug("[ROADMAP] Saved resource title='{}' type={} milestoneId={}", title, type, milestone.getId());
                     count++;
                 }
@@ -110,6 +118,48 @@ public class RoadmapService {
             log.error("[ROADMAP] Failed to parse resources JSON milestoneId={} raw='{}'", milestone.getId(), resourcesJson, e);
             throw new RuntimeException("Failed to parse resources JSON", e);
         }
+    }
+
+    @Transactional
+    public String generateContentForRoadmap(Roadmap roadmap) {
+        log.info("[ROADMAP] Generating overview content for roadmapId={} title='{}'", roadmap.getId(), roadmap.getTitle());
+        List<Milestone> milestones = memoryService.findMilestonesForRoadmap(roadmap);
+        StringBuilder milestoneTitles = new StringBuilder();
+        for (int i = 0; i < milestones.size(); i++) {
+            milestoneTitles.append(i + 1).append(". ").append(milestones.get(i).getTitle()).append("\n");
+        }
+        String input = """
+                Write an overview for this learning roadmap.
+
+                Title: %s
+                Description: %s
+                Milestones: %s
+
+                Cover: what it's about, who it's for, expected outcomes, and any prerequisites.
+                Keep it concise — 200-300 words.
+                """.formatted(roadmap.getTitle(), roadmap.getDescription(), milestoneTitles);
+        String tiptap = invokeContentAgent(input);
+        memoryService.updateRoadmapContent(roadmap, tiptap);
+        log.info("[ROADMAP] Overview content saved for roadmapId={}", roadmap.getId());
+        return tiptap;
+    }
+
+    @Transactional
+    public String generateContentForMilestone(Milestone milestone) {
+        log.info("[ROADMAP] Generating content for milestoneId={} title='{}'", milestone.getId(), milestone.getTitle());
+        String input = """
+                Write an educational article for this learning milestone.
+
+                Milestone: %s
+                Description: %s
+
+                Cover: key concepts, why they matter, common pitfalls, and practical tips.
+                Keep it concise — 250-350 words.
+                """.formatted(milestone.getTitle(), milestone.getDescription());
+        String tiptap = invokeContentAgent(input);
+        memoryService.updateMilestoneContent(milestone, tiptap);
+        log.info("[ROADMAP] Content saved for milestoneId={}", milestone.getId());
+        return tiptap;
     }
 
     @Transactional(readOnly = true)
@@ -135,6 +185,177 @@ public class RoadmapService {
     @Transactional(readOnly = true)
     public double calculateRoadmapProgress(Roadmap roadmap) {
         return memoryService.calculateRoadmapProgress(roadmap);
+    }
+
+    @Transactional
+    public QuizResponse getOrGenerateMilestoneQuiz(Milestone milestone) {
+        Quiz quiz = memoryService.findQuizByMilestone(milestone).orElseGet(() -> {
+            log.info("[QUIZ] Generating milestone quiz for milestoneId={}", milestone.getId());
+            String input = """
+                    Generate 4 multiple-choice questions to test understanding of this milestone.
+
+                    Milestone: %s
+                    Description: %s
+                    """.formatted(milestone.getTitle(), milestone.getDescription());
+            String json = invokeQuizAgent(input);
+            return memoryService.saveQuiz(Quiz.builder()
+                    .milestone(milestone)
+                    .questionsJson(json)
+                    .build());
+        });
+        return toQuizResponse(quiz);
+    }
+
+    @Transactional
+    public QuizResponse getOrGenerateRoadmapQuiz(Roadmap roadmap) {
+        int total = memoryService.countMilestones(roadmap);
+        int completed = memoryService.countCompletedMilestones(roadmap);
+        if (completed < total) {
+            throw new ConflictException(
+                    "Complete all milestones before taking the final quiz. Progress: " + completed + "/" + total);
+        }
+        Quiz quiz = memoryService.findQuizByRoadmap(roadmap).orElseGet(() -> {
+            log.info("[QUIZ] Generating roadmap quiz for roadmapId={}", roadmap.getId());
+            List<Milestone> milestones = memoryService.findMilestonesForRoadmap(roadmap);
+            StringBuilder topics = new StringBuilder();
+            for (int i = 0; i < milestones.size(); i++) {
+                topics.append(i + 1).append(". ").append(milestones.get(i).getTitle()).append("\n");
+            }
+            String input = """
+                    Generate 15 multiple-choice questions covering all topics in this learning roadmap.
+
+                    Roadmap: %s
+                    Topics covered:
+                    %s
+                    Spread the questions evenly across all topics.
+                    """.formatted(roadmap.getTitle(), topics);
+            String json = invokeQuizAgent(input);
+            return memoryService.saveQuiz(Quiz.builder()
+                    .roadmap(roadmap)
+                    .questionsJson(json)
+                    .build());
+        });
+        return toQuizResponse(quiz);
+    }
+
+    @Transactional
+    public QuizResultResponse evaluateMilestoneQuiz(Quiz quiz, Milestone milestone, List<Integer> answers) {
+        QuizResultResponse result = evaluate(quiz, answers);
+        if (result.passed()) {
+            log.info("[QUIZ] Milestone quiz passed — marking milestoneId={} as COMPLETED", milestone.getId());
+            memoryService.updateMilestoneStatus(milestone, Milestone.MilestoneStatus.COMPLETED);
+        }
+        return result;
+    }
+
+    @Transactional
+    public QuizResultResponse evaluateRoadmapQuiz(Quiz quiz, Roadmap roadmap, List<Integer> answers) {
+        QuizResultResponse result = evaluate(quiz, answers);
+        if (result.passed()) {
+            log.info("[QUIZ] Roadmap quiz passed — marking goal as COMPLETED for roadmapId={}", roadmap.getId());
+            memoryService.completeGoal(roadmap.getUserGoal());
+        }
+        return result;
+    }
+
+    private QuizResultResponse evaluate(Quiz quiz, List<Integer> answers) {
+        try {
+            JsonNode root = objectMapper.readTree(quiz.getQuestionsJson());
+            JsonNode questions = root.path("questions");
+            int total = questions.size();
+            int score = 0;
+            List<QuizResultQuestionDto> resultQuestions = new java.util.ArrayList<>();
+
+            for (int i = 0; i < total; i++) {
+                JsonNode q = questions.get(i);
+                int correctIndex = q.path("correctIndex").asInt();
+                int selectedIndex = (i < answers.size()) ? answers.get(i) : -1;
+                boolean correct = selectedIndex == correctIndex;
+                if (correct) score++;
+
+                List<String> options = new java.util.ArrayList<>();
+                q.path("options").forEach(o -> options.add(o.asText()));
+
+                resultQuestions.add(new QuizResultQuestionDto(
+                        q.path("question").asText(),
+                        options,
+                        correctIndex,
+                        selectedIndex,
+                        correct,
+                        q.path("explanation").asText()
+                ));
+            }
+
+            double percentage = total == 0 ? 0 : Math.round((double) score / total * 1000.0) / 10.0;
+            boolean passed = percentage >= 60.0;
+            return new QuizResultResponse(score, total, percentage, passed, resultQuestions);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to evaluate quiz", e);
+        }
+    }
+
+    private QuizResponse toQuizResponse(Quiz quiz) {
+        try {
+            JsonNode root = objectMapper.readTree(quiz.getQuestionsJson());
+            JsonNode questions = root.path("questions");
+            List<QuizQuestionDto> dtos = new java.util.ArrayList<>();
+            for (int i = 0; i < questions.size(); i++) {
+                JsonNode q = questions.get(i);
+                List<String> options = new java.util.ArrayList<>();
+                q.path("options").forEach(o -> options.add(o.asText()));
+                dtos.add(new QuizQuestionDto(i, q.path("question").asText(), options));
+            }
+            return new QuizResponse(quiz.getId(), dtos);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to read quiz", e);
+        }
+    }
+
+    private String invokeQuizAgent(String input) {
+        String raw = AgentInvocation
+                .create(agentPlatform, QuizGenerationAgent.QuizJson.class)
+                .invoke(new UserInput(input))
+                .content();
+        String cleaned = cleanJson(raw);
+        try {
+            objectMapper.readTree(cleaned);
+            return cleaned;
+        } catch (JsonProcessingException e) {
+            String repaired = repairJson(cleaned);
+            try {
+                objectMapper.readTree(repaired);
+                return repaired;
+            } catch (JsonProcessingException ex) {
+                log.error("[QUIZ] Quiz agent returned invalid JSON");
+                throw new RuntimeException("Failed to generate quiz: invalid JSON", ex);
+            }
+        }
+    }
+
+    private String invokeContentAgent(String input) {
+        String raw = AgentInvocation
+                .create(agentPlatform, ContentGenerationAgent.TiptapContent.class)
+                .invoke(new UserInput(input))
+                .content();
+        String cleaned = cleanJson(raw);
+        try {
+            objectMapper.readTree(cleaned);
+            return cleaned;
+        } catch (JsonProcessingException e) {
+            String repaired = repairJson(cleaned);
+            try {
+                objectMapper.readTree(repaired);
+                return repaired;
+            } catch (JsonProcessingException ex) {
+                log.warn("[ROADMAP] Content agent returned invalid JSON, storing raw text as paragraph");
+                return fallbackTiptap(raw);
+            }
+        }
+    }
+
+    private static String fallbackTiptap(String text) {
+        String escaped = text.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
+        return "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"" + escaped + "\"}]}]}";
     }
 
     private static String cleanJson(String json) {

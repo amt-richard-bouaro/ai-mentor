@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.rbouaro.aimentor.config.cors.CorsConfigProperties;
 import com.rbouaro.aimentor.config.docs.SwaggerConstants;
 import com.rbouaro.aimentor.config.jwt.RSAConfigProperties;
 import com.rbouaro.aimentor.entity.User;
@@ -35,6 +36,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
 
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPrivateKey;
@@ -54,11 +56,26 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
 
+    private final CorsConfigProperties corsConfigProperties;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         //TODO: create a whitelist for public endpoints
-        return http
+        http.cors(cors -> cors.configurationSource(request -> {
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowedOrigins(corsConfigProperties.allowedOrigins());
+            config.setAllowedMethods(corsConfigProperties.allowedMethods());
+            config.setAllowedHeaders(corsConfigProperties.allowedHeaders());
+            config.setMaxAge(3600L);
+            config.setAllowCredentials(true);
+            config.setExposedHeaders(List.of(
+                    "Access-Control-Allow-Origin",
+                    "Access-Control-Allow-Credentials"
+            ));
+            return config;
+        }));
+        http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SwaggerConstants.SWAGGER_WHITELIST).permitAll()
@@ -72,8 +89,9 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .bearerTokenResolver(new CustomTokenResolver())
-                )
-                .build();
+                );
+
+        return http.build();
     }
 
     @Bean

@@ -1,23 +1,19 @@
 package com.rbouaro.aimentor.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "roadmaps")
-@Setter
+@Table(name = "quizzes")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Roadmap {
+public class Quiz {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,28 +23,21 @@ public class Roadmap {
     private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_goal_pk", nullable = false)
-    @JsonBackReference
-    private UserGoal userGoal;
+    @JoinColumn(name = "milestone_pk", unique = true)
+    private Milestone milestone;
 
-    @Column(nullable = false)
-    private String title;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "roadmap_pk", unique = true)
+    private Roadmap roadmap;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    @Column(columnDefinition = "TEXT")
-    private String content;
+    @Column(name = "questions_json", columnDefinition = "TEXT", nullable = false)
+    private String questionsJson;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "roadmap", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<Milestone> milestones = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

@@ -28,22 +28,20 @@ public class RoadmapGenerationAgent {
 
                 The roadmap should include:
                 1. A title for the overall learning journey
-                2. A brief description of the learning path
-                3. Sequential milestones (must cover all areas of the topic), each with:
+                2. A brief plain-text description of the learning path (2-3 sentences)
+                3. Sequential milestones that cover all areas of the topic, each with:
                    - A clear, specific title
-                   - A description of what to learn
-                   - Why this milestone is important
-                   - Estimated time to complete
+                   - A short plain-text description of what the milestone covers (2-3 sentences)
+                   - Estimated time to complete in hours
 
-                Format your response in JSON with the following structure:
+                Format your response as JSON:
                 {
                   "title": "Roadmap title",
-                  "description": "Overall description of the learning journey",
+                  "description": "Brief description of the learning path",
                   "milestones": [
                     {
-                      "title": "Milestone 1 title",
-                      "description": "Detailed description of what to learn",
-                      "importance": "Why this milestone matters",
+                      "title": "Milestone title",
+                      "description": "Short description of what this milestone covers",
                       "estimatedTimeInHours": 10
                     }
                   ]

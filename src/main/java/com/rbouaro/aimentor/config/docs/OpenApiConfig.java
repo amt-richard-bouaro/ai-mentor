@@ -30,7 +30,7 @@ public class OpenApiConfig {
                                         .bearerFormat("JWT")
                                         .description("Enter JWT token")))
                 .info(new Info()
-                        .title("Auth Service API")
+                        .title("AI Mentor API")
                         .description("API documentation for ai-mentor: Frontend developers building for AI-mentor api, as well as potential third-party integrators. \\n\\nAccess via Gateway at http://localhost:9000\"")
                         .version("v1.0.0")
                         .contact(new Contact()

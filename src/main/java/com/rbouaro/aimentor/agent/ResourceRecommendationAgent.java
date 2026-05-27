@@ -56,7 +56,8 @@ public class ResourceRecommendationAgent {
                       "title": "Resource title",
                       "description": "Why this resource is valuable",
                       "type": "VIDEO|ARTICLE|COURSE|GITHUB_PROJECT|BOOK|OTHER",
-                      "url": "https://actual-url-from-search.com"
+                      "url": "https://actual-url-from-search.com",
+                      "thumbnail": "https://thumbnail-url-from-youtube.com/img.jpg or null for non-video resources"
                     }
                   ]
                 }
